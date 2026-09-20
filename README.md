@@ -45,7 +45,20 @@ The page loads **nothing from any external host**. Fonts are embedded, there is 
 no cookies and no tracking, and anything you type stays in your own browser's local storage.
 Nothing is sent anywhere.
 
-## Note on licensing
+## Legal
+
+- **This repository:** MIT, see [LICENSE](LICENSE). The template text is original work.
+- **Typefaces:** SIL Open Font License 1.1, embedded locally. See [FONT-LICENSES.md](FONT-LICENSES.md).
+- **Privacy:** nothing is collected, see [PRIVACY.md](PRIVACY.md).
+- **Impressum:** https://www.sebastianluedke.com/impressum
+- **Not affiliated** with Alibaba Cloud, the Qwen team, Comfy Org or Black Forest Labs. "Qwen",
+  "ComfyUI" and other names are used descriptively to identify the software they refer to, and
+  remain the property of their respective owners. This page is an independent, unofficial
+  reference and implies no endorsement.
+- **No warranty.** Provided as is, for information. You are responsible for how you use any
+  model and for complying with its licence.
+
+## Note on the model's licensing
 
 Qwen-Image-2.1 is released under the **Qwen Research License Agreement**, which permits research and
 evaluation only. Commercial use needs a separate licence from the model's authors. The template text
