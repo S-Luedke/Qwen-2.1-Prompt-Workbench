@@ -39,19 +39,21 @@
 
   /* masthead */
   .topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
-    background: var(--bg-deep); border-bottom: 1px solid var(--gold-edge); }
-  .topbar-inner { max-width: 1240px; margin: 0 auto; padding: 16px; display: flex;
-    flex-wrap: wrap; align-items: baseline; gap: 10px 20px; }
-  .brand { font-family: var(--serif); font-size: 1.62rem; font-weight: 600; margin: 0;
-    letter-spacing: .015em; color: var(--text); }
+    background: var(--bg-deep); border-bottom: 2px solid var(--gold); }
+  .topbar-inner { max-width: 1240px; margin: 0 auto; padding: 18px 16px; display: flex;
+    flex-wrap: wrap; align-items: flex-end; gap: 12px 24px; }
+  .brand { font-family: var(--serif); font-size: 2.35rem; font-weight: 600; margin: 0;
+    line-height: 1.05; letter-spacing: .005em; color: var(--text); }
   .brand b { color: var(--gold); font-weight: 600; }
-  .brand em { font-family: var(--sans); font-style: normal; font-size: .62rem; font-weight: 600;
-    letter-spacing: .22em; text-transform: uppercase; color: var(--muted);
-    margin-left: 12px; white-space: nowrap; }
+  .brand-sub { font-size: .68rem; font-weight: 600; letter-spacing: .26em;
+    text-transform: uppercase; color: var(--muted); margin: 5px 0 0; }
+  @media (max-width: 620px) { .brand { font-size: 1.85rem; } }
   .spec { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto;
     font-family: var(--mono); font-size: .68rem; }
   .spec b { font-weight: 400; background: var(--surface); border: 1px solid var(--line);
-    padding: 3px 9px; color: var(--text-soft); white-space: nowrap; letter-spacing: .02em; }
+    padding: 4px 10px; color: var(--text-soft); white-space: nowrap; letter-spacing: .02em; }
+  .spec b.lead { background: var(--gold); border-color: var(--gold); color: var(--bg-deep);
+    font-weight: 600; letter-spacing: .06em; }
 
   /* shell */
   .wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px; padding-block: 30px 72px; }
@@ -146,16 +148,19 @@
 
 <div class="topbar">
   <div class="topbar-inner">
-    <h1 class="brand">Qwen 2.1 <b>Prompt Workbench</b><em>69 templates</em></h1>
+    <div>
+      <h1 class="brand">Qwen 2.1 <b>Prompt Workbench</b></h1>
+      <p class="brand-sub">Fill-in prompts for Qwen-Image-2.1</p>
+    </div>
     <div class="spec">
-      <b>25 steps</b><b>CFG 1</b><b>euler</b><b>simple</b><b>max 10 refs</b>
+      <b class="lead">69 templates</b><b>CFG 1</b><b>euler / simple 25-50</b><b>res_2s / beta57 ~20</b><b>1 MP to 2K</b><b>10 refs max</b>
     </div>
   </div>
 </div>
 
 <div class="wrap">
   <div class="lede">
-    <p>Fill-in prompt templates for <strong>Qwen-Image-2.1</strong>, grouped by task. Edit any field and the finished prompt below it updates &mdash; then copy it straight into SwarmUI. Your edits are remembered in this browser.</p>
+    <p>Fill-in prompt templates for <strong>Qwen-Image-2.1</strong>, grouped by task. Edit any field and the finished prompt below it updates, ready to copy straight into SwarmUI. Your edits are remembered in this browser.</p>
     <p><code class="inline">&lt;image1&gt;</code>, <code class="inline">&lt;image2&gt;</code> &hellip; are literal tags the model reads: they map to the reference images in the order you add them, and <code class="inline">&lt;image1&gt;</code> is the edit target. Compare against the live demo at <a href="https://huggingface.co/spaces/Qwen/Qwen-Image-2.1" target="_blank" rel="noopener">the Qwen-Image-2.1 Space</a>.</p>
   </div>
 
@@ -183,7 +188,7 @@
   </div>
 
   <footer>
-    <p>Settings shown above match the official ComfyUI Qwen Image 2.1 templates. The reference implementation defaults to 40 steps at 2048&times;2048 instead &mdash; slower, marginally cleaner. CFG stays at 1 either way, which means the negative prompt is unused.</p>
+    <p>CFG stays at 1 on the official path, which means the negative prompt is unused. The ComfyUI templates ship 25 steps with euler / simple; Qwen's own repository uses about 40 to 50. Higher-order solvers converge in fewer steps, so res_2s with beta57 lands in the same compute band at roughly 20 and is what these templates were checked against. Keep the canvas at 1 megapixel or above: below that, flat areas hold visible noise.</p>
     <p>Template text here is original and written for filling in. Sources: <a href="https://huggingface.co/spaces/Qwen/Qwen-Image-2.1" target="_blank" rel="noopener">Qwen-Image-2.1 Space</a> &middot; <a href="https://github.com/QwenLM/Qwen-Image-2.1" target="_blank" rel="noopener">QwenLM/Qwen-Image-2.1</a> &middot; <a href="https://docs.comfy.org/tutorials/image/qwen/qwen-image-2-1" target="_blank" rel="noopener">ComfyUI docs</a>.</p>
   </footer>
 </div>
