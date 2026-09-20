@@ -39,7 +39,7 @@ model supports up to native 2K — prefer multiples of 32.
 |---|---|
 | `index.html` | the workbench, self-contained |
 | `templates.json` | the same 69 templates as data, with fields, defaults and reference counts |
-| `OFL.txt`, `FONT-LICENSES.md` | font licensing |
+| `FONT-LICENSES.md`, `fonts/` | font licensing |
 
 The page loads **nothing from any external host**. Fonts are embedded, there is no analytics,
 no cookies and no tracking, and anything you type stays in your own browser's local storage.
