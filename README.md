@@ -50,7 +50,7 @@ Nothing is sent anywhere.
 - **This repository:** MIT, see [LICENSE](LICENSE). The template text is original work.
 - **Typefaces:** SIL Open Font License 1.1, embedded locally. See [FONT-LICENSES.md](FONT-LICENSES.md).
 - **Privacy:** nothing is collected, see [PRIVACY.md](PRIVACY.md).
-- **Impressum:** https://www.sebastianluedke.com/impressum
+- **Impressum:** https://www.sebastianluedke.com/impressum/
 - **Not affiliated** with Alibaba Cloud, the Qwen team, Comfy Org or Black Forest Labs. "Qwen",
   "ComfyUI" and other names are used descriptively to identify the software they refer to, and
   remain the property of their respective owners. This page is an independent, unofficial

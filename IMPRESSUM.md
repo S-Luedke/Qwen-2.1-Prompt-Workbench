@@ -2,7 +2,7 @@
 
 The legal notice for this page is the one published at:
 
-**https://www.sebastianluedke.com/impressum**
+**https://www.sebastianluedke.com/impressum/**
 
 It is linked directly, and labelled "Impressum", in the footer of the page itself, which is what
 German law requires: leicht erkennbar, unmittelbar erreichbar, staendig verfuegbar.
