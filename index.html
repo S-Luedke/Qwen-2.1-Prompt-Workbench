@@ -137,8 +137,9 @@
   .ref-10 { color: #9FB4C9; background: rgba(159, 180, 201, .15); }
   .sw-10 { background: rgba(159, 180, 201, .22); border-color: #9FB4C9; color: #9FB4C9; }
   .legend { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 9px; }
-  .legend b { font-family: var(--mono); font-size: .64rem; font-weight: 500;
-    padding: 2px 6px; border: 1px solid; line-height: 1.5; }
+  .legend { gap: 5px; }
+  .legend b { font-family: var(--mono); font-size: .63rem; font-weight: 500;
+    padding: 2px 5px; border: 1px solid; line-height: 1.55; white-space: nowrap; }
   .legend-note { margin: 7px 0 0; font-size: .7rem; color: var(--muted); line-height: 1.45; }
 
   .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr));
@@ -197,11 +198,15 @@
         <input class="search" id="search" type="search" placeholder="try-on, neon sign, restore&hellip;" autocomplete="off">
       </div>
       <div>
-        <h2>Reference images</h2>
+        <h2>Show templates needing</h2>
         <div class="chips" id="refChips"></div>
-        <div class="legend"><b class="sw-1">1</b><b class="sw-2">2</b><b class="sw-3">3</b><b class="sw-4">4</b><b class="sw-5">5</b><b class="sw-6">6</b><b class="sw-7">7</b><b class="sw-8">8</b><b class="sw-9">9</b><b class="sw-10">10</b></div>
-        <p class="legend-note">Each slot keeps its colour across every template. Slot 1 is the
-        edit target and carries the page accent.</p>
+        <p class="legend-note">How many reference images a template expects.</p>
+      </div>
+      <div>
+        <h2>Reference colours</h2>
+        <div class="legend"><b class="sw-1">&lt;image1&gt;</b><b class="sw-2">&lt;image2&gt;</b><b class="sw-3">&lt;image3&gt;</b><b class="sw-4">&lt;image4&gt;</b><b class="sw-5">&lt;image5&gt;</b><b class="sw-6">&lt;image6&gt;</b><b class="sw-7">&lt;image7&gt;</b><b class="sw-8">&lt;image8&gt;</b><b class="sw-9">&lt;image9&gt;</b><b class="sw-10">&lt;image10&gt;</b></div>
+        <p class="legend-note">Every slot keeps its colour throughout the page, so the same
+        tag always looks the same. Slot 1 is the edit target and carries the page accent.</p>
       </div>
       <div>
         <h2>Categories</h2>
@@ -435,7 +440,7 @@
   var refFilter = null;
   var query = "";
   var chipWrap = document.getElementById("refChips");
-  [["any", null], ["0", 0], ["1", 1], ["2", 2], ["3+", 3]].forEach(function (pair) {
+  [["All", null], ["No refs", 0], ["1 image", 1], ["2 images", 2], ["3 or more", 3]].forEach(function (pair) {
     var b = document.createElement("button");
     b.type = "button";
     b.className = "chip";
