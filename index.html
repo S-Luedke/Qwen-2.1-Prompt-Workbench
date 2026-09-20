@@ -1,0 +1,632 @@
+<title>Qwen 2.1 Prompt Workbench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #eceff4;
+    --surface: #ffffff;
+    --surface-2: #f6f7fa;
+    --ink: #14171f;
+    --ink-soft: #333a48;
+    --muted: #5a6373;
+    --line: #d4dae3;
+    --line-soft: #e4e8ef;
+    --accent: #1e46c8;
+    --accent-soft: #e6ebfb;
+    --token: #94500f;
+    --token-soft: #f8ece0;
+    --ref: #0f6d63;
+    --ref-soft: #dff0ed;
+    --on-accent: #ffffff;
+    --shadow: 0 1px 2px rgba(20, 23, 31, .06), 0 8px 24px -16px rgba(20, 23, 31, .28);
+    --radius: 10px;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    --sans: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1218;
+      --surface: #171b24;
+      --surface-2: #1d222d;
+      --ink: #e7eaf0;
+      --ink-soft: #c3cad6;
+      --muted: #8f99a9;
+      --line: #2b313d;
+      --line-soft: #232936;
+      --accent: #85a5ff;
+      --accent-soft: #1b2440;
+      --token: #e0a468;
+      --token-soft: #33261a;
+      --ref: #5ec9ba;
+      --ref-soft: #14302d;
+      --on-accent: #0f1218;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1218;
+    --surface: #171b24;
+    --surface-2: #1d222d;
+    --ink: #e7eaf0;
+    --ink-soft: #c3cad6;
+    --muted: #8f99a9;
+    --line: #2b313d;
+    --line-soft: #232936;
+    --accent: #85a5ff;
+    --accent-soft: #1b2440;
+    --token: #e0a468;
+    --token-soft: #33261a;
+    --ref: #5ec9ba;
+    --ref-soft: #14302d;
+    --on-accent: #0f1218;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  }
+
+  /* ---- header ---- */
+  .topbar {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 12px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px 18px;
+  }
+  .brand {
+    font-family: var(--serif);
+    font-size: 1.32rem;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    margin: 0;
+  }
+  .brand em { font-style: italic; color: var(--muted); font-weight: 400; }
+  .spec {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: .72rem;
+  }
+  .spec b {
+    font-weight: 500;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 2px 7px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .theme-btn {
+    font: inherit;
+    font-size: .78rem;
+    background: var(--surface);
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 3px 10px;
+    cursor: pointer;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ---- shell ---- */
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 16px; padding-block: 22px 64px; }
+  .lede {
+    max-width: 62ch;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+  }
+  .lede p { margin: 0 0 8px; }
+  .shell { display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: 28px; align-items: start; }
+  @media (max-width: 900px) { .shell { grid-template-columns: 1fr; gap: 18px; } }
+
+  /* ---- rail ---- */
+  .rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 74px); display: grid; gap: 16px; }
+  @media (max-width: 900px) { .rail { position: static; } }
+  .rail h2, .tips h2 {
+    font-family: var(--sans);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin: 0 0 7px;
+    font-weight: 600;
+  }
+  .search {
+    width: 100%;
+    font: inherit;
+    font-size: .88rem;
+    padding: 8px 11px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .search::placeholder { color: var(--muted); }
+  .catlist { display: grid; gap: 1px; }
+  .catlink {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    font: inherit;
+    font-size: .86rem;
+    text-align: left;
+    background: none;
+    border: 0;
+    border-left: 2px solid transparent;
+    padding: 5px 9px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-radius: 0 6px 6px 0;
+  }
+  .catlink:hover { background: var(--surface); color: var(--ink); }
+  .catlink[aria-current="true"] { border-left-color: var(--accent); color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+  .catlink span { font-family: var(--mono); font-size: .7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip {
+    font: inherit;
+    font-size: .74rem;
+    font-family: var(--mono);
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--ref-soft); border-color: var(--ref); color: var(--ref); font-weight: 500; }
+  .tips ul { margin: 0; padding-left: 1.05em; color: var(--muted); font-size: .8rem; line-height: 1.5; }
+  .tips li { margin-bottom: 6px; }
+
+  /* ---- sections ---- */
+  .sec { margin-bottom: 40px; scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 84px); }
+  .sec-head { border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 16px; }
+  .sec-head h2 {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -.015em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .sec-head p { margin: 3px 0 0; color: var(--muted); font-size: .86rem; }
+  .cards { display: grid; gap: 14px; }
+
+  /* ---- card ---- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card-head { padding: 13px 16px 11px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+  .card-head h3 { margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -.01em; }
+  .refbadge {
+    font-family: var(--mono);
+    font-size: .68rem;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--ref-soft);
+    color: var(--ref);
+    white-space: nowrap;
+  }
+  .refbadge.zero { background: var(--surface-2); color: var(--muted); }
+  .card-head p { flex: 1 1 100%; margin: 0; color: var(--muted); font-size: .83rem; }
+
+  .tpl {
+    font-family: var(--mono);
+    font-size: .78rem;
+    line-height: 1.65;
+    padding: 11px 16px;
+    background: var(--surface-2);
+    border-top: 1px solid var(--line-soft);
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--ink-soft);
+    overflow-wrap: break-word;
+  }
+  .ph { background: var(--token-soft); color: var(--token); border-radius: 3px; padding: 0 3px; }
+  .ref { background: var(--ref-soft); color: var(--ref); border-radius: 3px; padding: 0 3px; font-weight: 500; }
+
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 9px 12px; padding: 13px 16px; }
+  .field { display: grid; gap: 3px; min-width: 0; }
+  .field label {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .field input {
+    font: inherit;
+    font-size: .84rem;
+    width: 100%;
+    padding: 6px 9px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .field input:focus { border-color: var(--accent); }
+
+  .out { padding: 0 16px 14px; display: grid; gap: 8px; }
+  .out-label { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .out-label span {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .out pre {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: .8rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--ink);
+  }
+  .btn {
+    font: inherit;
+    font-size: .78rem;
+    font-weight: 600;
+    padding: 4px 13px;
+    border-radius: 6px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.done { background: var(--ref); border-color: var(--ref); }
+
+  .empty { padding: 40px 0; color: var(--muted); text-align: center; }
+  footer { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; }
+  footer a { text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  code.inline { font-family: var(--mono); font-size: .86em; background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 4px; padding: 0 4px; }
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <h1 class="brand">Qwen 2.1 Prompt Workbench <em>&mdash; 69 templates</em></h1>
+    <div class="spec">
+      <b>25 steps</b><b>CFG 1</b><b>euler</b><b>simple</b><b>max 10 refs</b>
+      <button class="theme-btn" id="themeToggle" type="button">Theme</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="lede">
+    <p>Fill-in prompt templates for <strong>Qwen-Image-2.1</strong>, grouped by task. Edit any field and the finished prompt below it updates &mdash; then copy it straight into SwarmUI. Your edits are remembered in this browser.</p>
+    <p><code class="inline">&lt;image1&gt;</code>, <code class="inline">&lt;image2&gt;</code> &hellip; are literal tags the model reads: they map to the reference images in the order you add them, and <code class="inline">&lt;image1&gt;</code> is the edit target. Compare against the live demo at <a href="https://huggingface.co/spaces/Qwen/Qwen-Image-2.1" target="_blank" rel="noopener">the Qwen-Image-2.1 Space</a>.</p>
+  </div>
+
+  <div class="shell">
+    <aside class="rail">
+      <div>
+        <h2>Search</h2>
+        <input class="search" id="search" type="search" placeholder="try-on, neon sign, restore&hellip;" autocomplete="off">
+      </div>
+      <div>
+        <h2>Reference images</h2>
+        <div class="chips" id="refChips"></div>
+      </div>
+      <div>
+        <h2>Categories</h2>
+        <div class="catlist" id="catlist"></div>
+      </div>
+      <div class="tips">
+        <h2>Worth knowing</h2>
+        <ul id="tips"></ul>
+      </div>
+    </aside>
+
+    <main id="main"></main>
+  </div>
+
+  <footer>
+    <p>Settings shown above match the official ComfyUI Qwen Image 2.1 templates. The reference implementation defaults to 40 steps at 2048&times;2048 instead &mdash; slower, marginally cleaner. CFG stays at 1 either way, which means the negative prompt is unused.</p>
+    <p>Template text here is original and written for filling in. Sources: <a href="https://huggingface.co/spaces/Qwen/Qwen-Image-2.1" target="_blank" rel="noopener">Qwen-Image-2.1 Space</a> &middot; <a href="https://github.com/QwenLM/Qwen-Image-2.1" target="_blank" rel="noopener">QwenLM/Qwen-Image-2.1</a> &middot; <a href="https://docs.comfy.org/tutorials/image/qwen/qwen-image-2-1" target="_blank" rel="noopener">ComfyUI docs</a>.</p>
+  </footer>
+</div>
+
+<script id="tplData" type="application/json">{"name": "Qwen Image 2.1 Prompt Templates", "model": "Qwen-Image-2.1", "version": 1, "language": "en", "links": {"demo_space": "https://huggingface.co/spaces/Qwen/Qwen-Image-2.1", "github": "https://github.com/QwenLM/Qwen-Image-2.1", "comfy_docs": "https://docs.comfy.org/tutorials/image/qwen/qwen-image-2-1"}, "placeholder_syntax": "{{field}} marks a fill-in. <image1>, <image2>, ... are literal reference-image tags the model reads.", "reference_images": {"max": 10, "how_to_refer": "Write <image1>, <image2>, ... in the prompt. Slot order matches the order you add the images.", "note": "<image1> is the edit target - the output follows its size and framing. Later references can be any size or aspect."}, "settings": {"comfy_template": {"steps": 25, "cfg": 1, "sampler": "euler", "scheduler": "simple", "resolution": "1 MP (1024x1024) for edits, up to 4 MP (2048x2048) for text-to-image", "note": "What the official ComfyUI templates ship with, and what the SwarmUI preset uses."}, "official_repo": {"steps": 40, "cfg": 1, "sampler": "euler", "scheduler": "flow-matching / euler discrete", "resolution": "2048x2048 default", "note": "The reference implementation's defaults. Slower, marginally cleaner."}, "aspect_ratios": ["1:1", "4:3", "3:4", "3:2", "2:3", "16:9", "9:16"]}, "tips": ["CFG stays at 1. The negative prompt is unused at CFG 1, so leave it empty.", "Name every reference you rely on. An unmentioned <image2> is far weaker than one the prompt points at.", "Say what must NOT change. 'keep the face, hair and pose unchanged' is the single most useful clause in edit prompts.", "Set the output aspect ratio to match <image1>, or the edit drifts out of frame.", "For transparency, wrap the prompt in the RGBA sentence pair and save as PNG.", "Photo edits hold up better when you end with a capture clause like 'uncompressed raw photo'.", "Text rendering is a strength: put the exact string in double quotes and say where it sits."], "categories": [{"id": "text-to-image", "name": "Text to Image", "blurb": "No references. Straight generation, up to native 2K.", "templates": [{"id": "t2i-photoreal", "title": "Photoreal scene", "reference_images": 0, "description": "General-purpose photographic generation. Swap the capture clause for the look you want.", "prompt": "{{subject}}, {{setting}}, {{lighting}}, shot on {{camera}}, {{lens}}, shallow depth of field, uncompressed raw photo", "fields": [{"key": "subject", "label": "Subject", "placeholder": "a weathered fisherman mending a net", "default": "a weathered fisherman mending a net"}, {"key": "setting", "label": "Setting", "placeholder": "on a harbour wall at dawn", "default": "on a harbour wall at dawn"}, {"key": "lighting", "label": "Lighting", "placeholder": "low golden side light, long shadows", "default": "low golden side light, long shadows"}, {"key": "camera", "label": "Camera", "placeholder": "a full-frame DSLR", "default": "a full-frame DSLR"}, {"key": "lens", "label": "Lens", "placeholder": "85mm f/1.4", "default": "85mm f/1.4"}]}, {"id": "t2i-portrait", "title": "Cinematic portrait", "reference_images": 0, "description": "Tight character framing with deliberate lighting language.", "prompt": "Cinematic portrait of {{subject}}, {{expression}}, {{wardrobe}}, {{lighting}}, {{background}}, 35mm film grain, natural skin texture, uncompressed raw photo", "fields": [{"key": "subject", "label": "Subject", "placeholder": "a woman in her sixties with close-cropped silver hair", "default": "a woman in her sixties with close-cropped silver hair"}, {"key": "expression", "label": "Expression", "placeholder": "calm, looking just past the camera", "default": "calm, looking just past the camera"}, {"key": "wardrobe", "label": "Wardrobe", "placeholder": "a charcoal wool coat", "default": "a charcoal wool coat"}, {"key": "lighting", "label": "Lighting", "placeholder": "single soft key from the left, deep falloff", "default": "single soft key from the left, deep falloff"}, {"key": "background", "label": "Background", "placeholder": "an unlit interior, almost black", "default": "an unlit interior, almost black"}]}, {"id": "t2i-product", "title": "Product hero shot", "reference_images": 0, "description": "Clean commercial framing. Keep the surface and backdrop explicit.", "prompt": "Studio product photograph of {{product}} on {{surface}}, {{backdrop}}, {{lighting}}, centred, sharp throughout, commercial catalogue quality", "fields": [{"key": "product", "label": "Product", "placeholder": "a matte black espresso grinder", "default": "a matte black espresso grinder"}, {"key": "surface", "label": "Surface", "placeholder": "a honed travertine slab", "default": "a honed travertine slab"}, {"key": "backdrop", "label": "Backdrop", "placeholder": "a seamless warm grey backdrop", "default": "a seamless warm grey backdrop"}, {"key": "lighting", "label": "Lighting", "placeholder": "large softbox above, silver bounce card at right", "default": "large softbox above, silver bounce card at right"}]}, {"id": "t2i-illustration", "title": "Illustration / art direction", "reference_images": 0, "description": "Named medium first, then subject, then palette. The medium carries most of the look.", "prompt": "{{medium}} of {{subject}}, {{composition}}, palette of {{palette}}, {{detail}}", "fields": [{"key": "medium", "label": "Medium", "placeholder": "A gouache illustration", "default": "A gouache illustration"}, {"key": "subject", "label": "Subject", "placeholder": "a tram climbing a steep cobbled street", "default": "a tram climbing a steep cobbled street"}, {"key": "composition", "label": "Composition", "placeholder": "low angle, strong diagonal", "default": "low angle, strong diagonal"}, {"key": "palette", "label": "Palette", "placeholder": "ochre, slate blue and off-white", "default": "ochre, slate blue and off-white"}, {"key": "detail", "label": "Detail level", "placeholder": "visible brush texture, flat shapes, no outlines", "default": "visible brush texture, flat shapes, no outlines"}]}, {"id": "t2i-interior", "title": "Architecture / interior", "reference_images": 0, "description": "Wide coverage benefits from naming the vantage point and the time of day.", "prompt": "{{space}}, {{style}}, {{materials}}, {{time_of_day}} light through {{light_source}}, {{vantage}}, architectural photography, no people", "fields": [{"key": "space", "label": "Space", "placeholder": "A narrow reading room", "default": "A narrow reading room"}, {"key": "style", "label": "Style", "placeholder": "mid-century Scandinavian", "default": "mid-century Scandinavian"}, {"key": "materials", "label": "Materials", "placeholder": "oak shelving, linen upholstery, terracotta floor", "default": "oak shelving, linen upholstery, terracotta floor"}, {"key": "time_of_day", "label": "Time of day", "placeholder": "late afternoon", "default": "late afternoon"}, {"key": "light_source", "label": "Light source", "placeholder": "a tall west-facing window", "default": "a tall west-facing window"}, {"key": "vantage", "label": "Vantage", "placeholder": "eye level from the doorway", "default": "eye level from the doorway"}]}, {"id": "t2i-landscape", "title": "Landscape", "reference_images": 0, "description": "Weather and atmosphere do more work here than subject detail.", "prompt": "{{location}}, {{weather}}, {{atmosphere}}, {{foreground}} in the foreground, {{time}}, wide angle, high dynamic range, uncompressed raw photo", "fields": [{"key": "location", "label": "Location", "placeholder": "A basalt coastline", "default": "A basalt coastline"}, {"key": "weather", "label": "Weather", "placeholder": "squalls rolling in off the sea", "default": "squalls rolling in off the sea"}, {"key": "atmosphere", "label": "Atmosphere", "placeholder": "spray hanging in the air", "default": "spray hanging in the air"}, {"key": "foreground", "label": "Foreground", "placeholder": "wet black rock", "default": "wet black rock"}, {"key": "time", "label": "Time", "placeholder": "twenty minutes before sunrise", "default": "twenty minutes before sunrise"}]}, {"id": "t2i-character-sheet", "title": "Character concept sheet", "reference_images": 0, "description": "Multiple views in one frame. Say 'same character' explicitly or the views drift.", "prompt": "Character design sheet of {{character}}, the same character shown in {{views}}, {{style}}, flat {{background}} background, even lighting, consistent proportions across all views", "fields": [{"key": "character", "label": "Character", "placeholder": "a desert courier in layered linen robes", "default": "a desert courier in layered linen robes"}, {"key": "views", "label": "Views", "placeholder": "front, three-quarter and back view side by side", "default": "front, three-quarter and back view side by side"}, {"key": "style", "label": "Style", "placeholder": "clean semi-realistic concept art", "default": "clean semi-realistic concept art"}, {"key": "background", "label": "Background", "placeholder": "light grey", "default": "light grey"}]}, {"id": "t2i-2k-wallpaper", "title": "Native 2K wide", "reference_images": 0, "description": "Pair with 2048x2048 or a 16:9 crop at ~4 MP. Set the resolution in SwarmUI, not in the prompt.", "prompt": "{{subject}}, {{mood}}, {{palette}}, extremely detailed, edge to edge composition with no empty corners, {{finish}}", "fields": [{"key": "subject", "label": "Subject", "placeholder": "An orbital station seen against a gas giant", "default": "An orbital station seen against a gas giant"}, {"key": "mood", "label": "Mood", "placeholder": "quiet, vast, slightly melancholy", "default": "quiet, vast, slightly melancholy"}, {"key": "palette", "label": "Palette", "placeholder": "deep indigo, rust and cold white", "default": "deep indigo, rust and cold white"}, {"key": "finish", "label": "Finish", "placeholder": "matte sci-fi concept art", "default": "matte sci-fi concept art"}]}]}, {"id": "text-rendering", "name": "Text & Typography", "blurb": "2.1's headline strength. Quote the exact string and place it in the scene.", "templates": [{"id": "txt-sign", "title": "Neon / shop sign", "reference_images": 0, "description": "Quote the string. Naming the surface and reflections sells the render.", "prompt": "A {{sign_type}} that reads \"{{text}}\", {{setting}}, {{atmosphere}}, reflections on {{reflective_surface}}, the text is sharp, correctly spelled and fully legible", "fields": [{"key": "sign_type", "label": "Sign type", "placeholder": "neon shop sign", "default": "neon shop sign"}, {"key": "text", "label": "Exact text", "placeholder": "NIGHT SHIFT", "default": "NIGHT SHIFT"}, {"key": "setting", "label": "Setting", "placeholder": "above a narrow doorway on a rainy street", "default": "above a narrow doorway on a rainy street"}, {"key": "atmosphere", "label": "Atmosphere", "placeholder": "night, light drizzle", "default": "night, light drizzle"}, {"key": "reflective_surface", "label": "Reflective surface", "placeholder": "wet pavement", "default": "wet pavement"}]}, {"id": "txt-poster", "title": "Poster with hierarchy", "reference_images": 0, "description": "Give each text element its own role and size. That is what 2.1's layout handling is for.", "prompt": "A {{style}} poster. The headline \"{{headline}}\" is set large across {{headline_position}}. Beneath it the subhead \"{{subhead}}\" is set small. In the bottom corner, \"{{footer}}\". {{imagery}}. {{typography}}, accurate letterforms, balanced margins", "fields": [{"key": "style", "label": "Poster style", "placeholder": "Swiss modernist", "default": "Swiss modernist"}, {"key": "headline", "label": "Headline", "placeholder": "OPEN STUDIOS", "default": "OPEN STUDIOS"}, {"key": "headline_position", "label": "Headline position", "placeholder": "the upper third", "default": "the upper third"}, {"key": "subhead", "label": "Subhead", "placeholder": "Fourteen workshops, one weekend", "default": "Fourteen workshops, one weekend"}, {"key": "footer", "label": "Footer text", "placeholder": "12-13 October", "default": "12-13 October"}, {"key": "imagery", "label": "Imagery", "placeholder": "A single large ochre circle sits behind the type", "default": "A single large ochre circle sits behind the type"}, {"key": "typography", "label": "Typography", "placeholder": "Heavy grotesque type, tight tracking", "default": "Heavy grotesque type, tight tracking"}]}, {"id": "txt-book-cover", "title": "Book cover", "reference_images": 0, "description": "Title, author and spine treatment as separate instructions.", "prompt": "A book cover. The title \"{{title}}\" is set in {{title_style}}, and the author name \"{{author}}\" sits {{author_position}}. The cover art is {{art}}. {{finish}}, text rendered crisply with correct spelling", "fields": [{"key": "title", "label": "Title", "placeholder": "The Salt Road", "default": "The Salt Road"}, {"key": "title_style", "label": "Title style", "placeholder": "a tall condensed serif, letterpressed into the board", "default": "a tall condensed serif, letterpressed into the board"}, {"key": "author", "label": "Author", "placeholder": "M. ODUYA", "default": "M. ODUYA"}, {"key": "author_position", "label": "Author position", "placeholder": "small along the bottom edge", "default": "small along the bottom edge"}, {"key": "art", "label": "Cover art", "placeholder": "a single caravan silhouette on a cracked salt flat", "default": "a single caravan silhouette on a cracked salt flat"}, {"key": "finish", "label": "Finish", "placeholder": "Muted duotone, heavy paper texture", "default": "Muted duotone, heavy paper texture"}]}, {"id": "txt-packaging", "title": "Packaging label", "reference_images": 0, "description": "Product labels need the brand line, the descriptor and the small print separated out.", "prompt": "Product packaging for {{product}}. The brand name \"{{brand}}\" is set {{brand_style}}. Below it the descriptor \"{{descriptor}}\". Small print reads \"{{small_print}}\". The container is {{container}}, {{label_style}}. Studio lit, straight-on, all text sharp and correctly spelled", "fields": [{"key": "product", "label": "Product", "placeholder": "a single-origin filter coffee", "default": "a single-origin filter coffee"}, {"key": "brand", "label": "Brand name", "placeholder": "MERIDIAN", "default": "MERIDIAN"}, {"key": "brand_style", "label": "Brand style", "placeholder": "in wide spaced capitals", "default": "in wide spaced capitals"}, {"key": "descriptor", "label": "Descriptor", "placeholder": "Washed Ethiopia - 250g", "default": "Washed Ethiopia - 250g"}, {"key": "small_print", "label": "Small print", "placeholder": "Roasted 04.11", "default": "Roasted 04.11"}, {"key": "container", "label": "Container", "placeholder": "a kraft paper bag with a tin tie", "default": "a kraft paper bag with a tin tie"}, {"key": "label_style", "label": "Label style", "placeholder": "a cream label with a single rust stripe", "default": "a cream label with a single rust stripe"}]}, {"id": "txt-menu", "title": "Chalkboard / hand-lettered", "reference_images": 0, "description": "Multiple short lines. List them out rather than describing them generally.", "prompt": "A {{surface}} with hand-lettered {{lettering_style}} text. It reads, line by line: \"{{line1}}\", \"{{line2}}\", \"{{line3}}\". {{decoration}}. {{scene}}, all words legible and correctly spelled", "fields": [{"key": "surface", "label": "Surface", "placeholder": "chalkboard", "default": "chalkboard"}, {"key": "lettering_style", "label": "Lettering style", "placeholder": "white chalk", "default": "white chalk"}, {"key": "line1", "label": "Line 1", "placeholder": "TODAY", "default": "TODAY"}, {"key": "line2", "label": "Line 2", "placeholder": "Leek and potato soup", "default": "Leek and potato soup"}, {"key": "line3", "label": "Line 3", "placeholder": "Sourdough, salted butter", "default": "Sourdough, salted butter"}, {"key": "decoration", "label": "Decoration", "placeholder": "A small chalk drawing of a bowl in the corner", "default": "A small chalk drawing of a bowl in the corner"}, {"key": "scene", "label": "Scene", "placeholder": "Propped against a brick wall in a cafe doorway", "default": "Propped against a brick wall in a cafe doorway"}]}, {"id": "txt-bilingual", "title": "Bilingual / CJK signage", "reference_images": 0, "description": "2.1 renders Chinese and English well. State both strings and which is primary.", "prompt": "{{object}} showing two lines of text: \"{{primary_text}}\" in {{primary_language}} as the larger primary line, and \"{{secondary_text}}\" in {{secondary_language}} beneath it in smaller type. {{setting}}. Both scripts rendered accurately and legibly", "fields": [{"key": "object", "label": "Object", "placeholder": "A station platform sign", "default": "A station platform sign"}, {"key": "primary_text", "label": "Primary text", "placeholder": "東駅前", "default": "東駅前"}, {"key": "primary_language", "label": "Primary language", "placeholder": "Chinese characters", "default": "Chinese characters"}, {"key": "secondary_text", "label": "Secondary text", "placeholder": "East Station Front", "default": "East Station Front"}, {"key": "secondary_language", "label": "Secondary language", "placeholder": "English", "default": "English"}, {"key": "setting", "label": "Setting", "placeholder": "Enamel sign, slight weathering, overcast daylight", "default": "Enamel sign, slight weathering, overcast daylight"}]}, {"id": "txt-logo", "title": "Logo lockup", "reference_images": 0, "description": "Ask for a flat lockup, not a photograph of a logo, unless you want a mockup.", "prompt": "A flat vector logo lockup for {{company}}. The wordmark reads \"{{wordmark}}\" in {{type_style}}. {{mark}} sits {{mark_position}}. Palette: {{palette}}. Centred on a plain {{background}} background, no photographic effects, crisp edges", "fields": [{"key": "company", "label": "Company", "placeholder": "a coastal survey firm", "default": "a coastal survey firm"}, {"key": "wordmark", "label": "Wordmark", "placeholder": "TIDELINE", "default": "TIDELINE"}, {"key": "type_style", "label": "Type style", "placeholder": "a geometric sans with a lowered crossbar on the E", "default": "a geometric sans with a lowered crossbar on the E"}, {"key": "mark", "label": "Symbol", "placeholder": "A simple two-stroke wave mark", "default": "A simple two-stroke wave mark"}, {"key": "mark_position", "label": "Symbol position", "placeholder": "to the left of the wordmark", "default": "to the left of the wordmark"}, {"key": "palette", "label": "Palette", "placeholder": "deep teal on bone white", "default": "deep teal on bone white"}, {"key": "background", "label": "Background", "placeholder": "white", "default": "white"}]}, {"id": "txt-handwriting", "title": "Handwritten note", "reference_images": 0, "description": "Handwriting reads better when you name the instrument and the paper.", "prompt": "A handwritten note on {{paper}}, written in {{instrument}}. It reads: \"{{text}}\". {{handwriting_style}}. {{scene}}, shallow depth of field, legible", "fields": [{"key": "paper", "label": "Paper", "placeholder": "a lined index card", "default": "a lined index card"}, {"key": "instrument", "label": "Instrument", "placeholder": "blue fountain pen ink", "default": "blue fountain pen ink"}, {"key": "text", "label": "Text", "placeholder": "Back at four. Key is under the pot.", "default": "Back at four. Key is under the pot."}, {"key": "handwriting_style", "label": "Handwriting", "placeholder": "Quick, slanted cursive with an ink blot at the end", "default": "Quick, slanted cursive with an ink blot at the end"}, {"key": "scene", "label": "Scene", "placeholder": "Lying on a kitchen worktop", "default": "Lying on a kitchen worktop"}]}]}, {"id": "transparent", "name": "Transparent / RGBA", "blurb": "Wrap the description in the RGBA sentence pair, and save as PNG to keep the alpha.", "templates": [{"id": "rgba-sticker", "title": "Die-cut sticker", "reference_images": 0, "description": "The official wrapper. Keep both sentences - they are what switches the alpha channel on.", "prompt": "This is an RGBA image with transparency. {{subject}}, {{style}}, {{border}}. The image has alpha channel and the background is transparent.", "fields": [{"key": "subject", "label": "Subject", "placeholder": "A grumpy tabby cat wearing a tiny raincoat", "default": "A grumpy tabby cat wearing a tiny raincoat"}, {"key": "style", "label": "Style", "placeholder": "bold cartoon sticker art with thick clean outlines", "default": "bold cartoon sticker art with thick clean outlines"}, {"key": "border", "label": "Border", "placeholder": "a white die-cut border around the silhouette", "default": "a white die-cut border around the silhouette"}]}, {"id": "rgba-icon", "title": "Icon / glyph", "reference_images": 0, "description": "Good for UI assets. Say 'single centred glyph' or you get a scene.", "prompt": "This is an RGBA image with transparency. A single centred {{style}} icon of {{subject}}, {{colour}}, no background elements, no text. The image has alpha channel and the background is transparent.", "fields": [{"key": "style", "label": "Style", "placeholder": "flat two-colour", "default": "flat two-colour"}, {"key": "subject", "label": "Subject", "placeholder": "a folded paper map", "default": "a folded paper map"}, {"key": "colour", "label": "Colour", "placeholder": "deep navy with a single amber accent", "default": "deep navy with a single amber accent"}]}, {"id": "rgba-cutout", "title": "Product cutout", "reference_images": 0, "description": "Generates the asset already knocked out, rather than removing a background afterwards.", "prompt": "This is an RGBA image with transparency. {{product}}, {{angle}}, {{lighting}}, cleanly isolated with no background, no shadow on the ground. The image has alpha channel and the background is transparent.", "fields": [{"key": "product", "label": "Product", "placeholder": "A pair of tan leather work boots", "default": "A pair of tan leather work boots"}, {"key": "angle", "label": "Angle", "placeholder": "three-quarter view", "default": "three-quarter view"}, {"key": "lighting", "label": "Lighting", "placeholder": "even studio lighting, soft contact shadow only under the soles", "default": "even studio lighting, soft contact shadow only under the soles"}]}, {"id": "rgba-overlay", "title": "Overlay element", "reference_images": 0, "description": "Decorative layers you will composite yourself.", "prompt": "This is an RGBA image with transparency. {{element}}, {{style}}, isolated on nothing, edges fading naturally to fully transparent. The image has alpha channel and the background is transparent.", "fields": [{"key": "element", "label": "Element", "placeholder": "A drift of falling cherry blossom petals", "default": "A drift of falling cherry blossom petals"}, {"key": "style", "label": "Style", "placeholder": "soft focus, varied sizes, natural scatter", "default": "soft focus, varied sizes, natural scatter"}]}]}, {"id": "single-edit", "name": "Single-Image Edit", "blurb": "One reference. <image1> is the target; the output follows its framing.", "templates": [{"id": "edit-background", "title": "Replace background", "reference_images": 1, "description": "Name what must survive the change, not just what replaces it.", "prompt": "Change the background of <image1> to {{new_background}}. Keep the subject, their pose, framing and lighting direction unchanged. Match the new background's light to the subject. Uncompressed raw photo.", "fields": [{"key": "new_background", "label": "New background", "placeholder": "a fogged-in pine forest at first light", "default": "a fogged-in pine forest at first light"}]}, {"id": "edit-remove", "title": "Remove something", "reference_images": 1, "description": "Say what fills the gap, or the model invents something.", "prompt": "Remove {{target}} from <image1>. Fill the space with {{fill}}, matching the surrounding texture, perspective and lighting. Change nothing else. Uncompressed raw photo.", "fields": [{"key": "target", "label": "What to remove", "placeholder": "the parked cars along the left kerb", "default": "the parked cars along the left kerb"}, {"key": "fill", "label": "What replaces it", "placeholder": "clean empty road and kerbstones", "default": "clean empty road and kerbstones"}]}, {"id": "edit-add", "title": "Add something", "reference_images": 1, "description": "Placement and scale are the two things worth being explicit about.", "prompt": "Add {{addition}} to <image1>, positioned {{placement}}, at {{scale}} scale. Match the existing lighting, perspective and grain. Keep everything else in the image unchanged. Uncompressed raw photo.", "fields": [{"key": "addition", "label": "What to add", "placeholder": "a grey heron standing in the shallows", "default": "a grey heron standing in the shallows"}, {"key": "placement", "label": "Placement", "placeholder": "in the lower right third, facing left", "default": "in the lower right third, facing left"}, {"key": "scale", "label": "Scale", "placeholder": "realistic", "default": "realistic"}]}, {"id": "edit-replace", "title": "Swap an object", "reference_images": 1, "description": "A swap keeps the footprint. Say so, or the composition shifts.", "prompt": "In <image1>, replace {{original}} with {{replacement}}. Keep the same position, scale, orientation and shadow footprint. Everything else unchanged. Uncompressed raw photo.", "fields": [{"key": "original", "label": "Original object", "placeholder": "the wooden chair at the table", "default": "the wooden chair at the table"}, {"key": "replacement", "label": "Replacement", "placeholder": "a bentwood cafe chair", "default": "a bentwood cafe chair"}]}, {"id": "edit-material", "title": "Change material", "reference_images": 1, "description": "Material swaps need the surface property spelled out - gloss, grain, weight.", "prompt": "Change the material of {{target}} in <image1> to {{material}}, with {{surface_quality}}. Keep the shape, position and lighting identical. Uncompressed raw photo.", "fields": [{"key": "target", "label": "Target", "placeholder": "the tabletop", "default": "the tabletop"}, {"key": "material", "label": "New material", "placeholder": "polished green marble", "default": "polished green marble"}, {"key": "surface_quality", "label": "Surface quality", "placeholder": "visible veining and a soft specular sheen", "default": "visible veining and a soft specular sheen"}]}, {"id": "edit-weather", "title": "Change weather / season", "reference_images": 1, "description": "Weather changes the light too. Ask for both or it looks pasted on.", "prompt": "Change the weather in <image1> to {{weather}}. Adjust the light, colour temperature and ground surfaces to match - {{ground_effect}}. Keep the composition, subjects and camera position identical. Uncompressed raw photo.", "fields": [{"key": "weather", "label": "Weather", "placeholder": "heavy falling snow", "default": "heavy falling snow"}, {"key": "ground_effect", "label": "Ground effect", "placeholder": "settled snow on roofs, pavements and ledges", "default": "settled snow on roofs, pavements and ledges"}]}, {"id": "edit-time", "title": "Change time of day", "reference_images": 1, "description": "Say where the light comes from, not just when it is.", "prompt": "Change the time of day in <image1> to {{time}}. Light comes from {{light_direction}}, colour temperature {{temperature}}, with {{shadow_note}}. {{extras}}. Keep the composition and all objects unchanged. Uncompressed raw photo.", "fields": [{"key": "time", "label": "Time", "placeholder": "just after sunset", "default": "just after sunset"}, {"key": "light_direction", "label": "Light direction", "placeholder": "low on the horizon behind the buildings", "default": "low on the horizon behind the buildings"}, {"key": "temperature", "label": "Colour temperature", "placeholder": "warm on the highlights, cool in the shade", "default": "warm on the highlights, cool in the shade"}, {"key": "shadow_note", "label": "Shadows", "placeholder": "long soft shadows", "default": "long soft shadows"}, {"key": "extras", "label": "Extras", "placeholder": "Interior and street lights switched on", "default": "Interior and street lights switched on"}]}, {"id": "edit-relight", "title": "Relight", "reference_images": 1, "description": "Pure lighting change. Useful for salvaging flat source photos.", "prompt": "Relight <image1> with {{setup}}. Keep the subject, pose, background and framing exactly as they are - change only the lighting, shadows and colour temperature. Uncompressed raw photo.", "fields": [{"key": "setup", "label": "Lighting setup", "placeholder": "a single hard key from camera left and deep unfilled shadow on the right", "default": "a single hard key from camera left and deep unfilled shadow on the right"}]}, {"id": "edit-colourise", "title": "Colourise black and white", "reference_images": 1, "description": "Naming a few specific colours anchors the rest of the palette.", "prompt": "Colourise <image1> naturally. {{colour_notes}}. Keep all detail, grain and composition intact, no stylisation, period-accurate colours. Uncompressed raw photo.", "fields": [{"key": "colour_notes", "label": "Colour notes", "placeholder": "Skin tones warm and realistic, the coat a deep navy, the brickwork a dull red", "default": "Skin tones warm and realistic, the coat a deep navy, the brickwork a dull red"}]}, {"id": "edit-restore", "title": "Restore an old photo", "reference_images": 1, "description": "List the specific damage. Generic 'restore' under-delivers.", "prompt": "Restore <image1>. Repair {{damage}}, recover detail in {{recover_area}}, remove {{artefacts}}. Keep the original composition, expressions and period character - do not modernise faces or clothing. Uncompressed raw photo.", "fields": [{"key": "damage", "label": "Damage", "placeholder": "the creases, tears and emulsion cracks", "default": "the creases, tears and emulsion cracks"}, {"key": "recover_area", "label": "Recover detail in", "placeholder": "the blown-out sky and the blocked-up shadows", "default": "the blown-out sky and the blocked-up shadows"}, {"key": "artefacts", "label": "Remove", "placeholder": "dust, scratches and yellowing", "default": "dust, scratches and yellowing"}]}, {"id": "edit-knockout", "title": "Remove background to transparent", "reference_images": 1, "description": "The background-removal task from Qwen's own template set.", "prompt": "Remove the background from <image1> and output a PNG image with a transparent background. Keep the subject's edges clean, including {{fine_detail}}. Do not alter the subject.", "fields": [{"key": "fine_detail", "label": "Fine detail to preserve", "placeholder": "loose strands of hair and the frayed hem", "default": "loose strands of hair and the frayed hem"}]}, {"id": "edit-angle", "title": "Change camera angle", "reference_images": 1, "description": "2.1 will rotate a subject. Keep the request to one clear increment.", "prompt": "Show the subject of <image1> {{rotation}}. Keep the same person, clothing, lighting and background. Consistent identity and proportions. Uncompressed raw photo.", "fields": [{"key": "rotation", "label": "Rotation", "placeholder": "turned 90 degrees to their right, in profile", "default": "turned 90 degrees to their right, in profile"}]}, {"id": "edit-outpaint", "title": "Extend the frame", "reference_images": 1, "description": "Outpainting. Say which direction and what should appear there.", "prompt": "Extend <image1> {{direction}} to reveal {{reveal}}. Continue the existing perspective, lighting and style seamlessly. Keep the original area untouched. Uncompressed raw photo.", "fields": [{"key": "direction", "label": "Direction", "placeholder": "downwards", "default": "downwards"}, {"key": "reveal", "label": "What to reveal", "placeholder": "the subject's full body and the ground they are standing on", "default": "the subject's full body and the ground they are standing on"}]}, {"id": "edit-declutter", "title": "Clean up a scene", "reference_images": 1, "description": "Bulk removal. Enumerate categories rather than individual items.", "prompt": "Clean up <image1>: remove {{clutter}}. Leave {{keep}} exactly as they are. Repair the surfaces underneath convincingly. Uncompressed raw photo.", "fields": [{"key": "clutter", "label": "Remove", "placeholder": "the cables, the bin bags and the temporary signage", "default": "the cables, the bin bags and the temporary signage"}, {"key": "keep", "label": "Keep", "placeholder": "the building, the street furniture and the people", "default": "the building, the street furniture and the people"}]}]}, {"id": "text-edit", "name": "Editing Text In An Image", "blurb": "Replacing, translating and restyling type that already exists in a photo.", "templates": [{"id": "txtedit-replace", "title": "Replace a string", "reference_images": 1, "description": "Quote both the old and the new string. That is the whole trick.", "prompt": "In <image1>, change the text \"{{old_text}}\" to \"{{new_text}}\". Keep the original typeface, weight, colour, perspective, curvature and wear exactly as they are. Change nothing else in the image.", "fields": [{"key": "old_text", "label": "Existing text", "placeholder": "CLOSED", "default": "CLOSED"}, {"key": "new_text", "label": "New text", "placeholder": "OPEN TILL LATE", "default": "OPEN TILL LATE"}]}, {"id": "txtedit-translate", "title": "Translate text in place", "reference_images": 1, "description": "Works both directions between English and Chinese.", "prompt": "Translate all visible text in <image1> into {{language}}, keeping it in the same positions with the same typographic style, size relationships and perspective. Do not change anything else in the image.", "fields": [{"key": "language", "label": "Target language", "placeholder": "English", "default": "English"}]}, {"id": "txtedit-add", "title": "Add text into a scene", "reference_images": 1, "description": "Put the text on a real surface rather than floating it over the image.", "prompt": "Add the text \"{{text}}\" to <image1>, rendered on {{surface}}, positioned {{placement}}, in {{style}}. Match the scene's perspective, lighting and shadow. Keep everything else unchanged.", "fields": [{"key": "text", "label": "Text", "placeholder": "ROOM FOR ONE MORE", "default": "ROOM FOR ONE MORE"}, {"key": "surface", "label": "Surface", "placeholder": "a painted wooden board", "default": "a painted wooden board"}, {"key": "placement", "label": "Placement", "placeholder": "leaning against the wall in the foreground", "default": "leaning against the wall in the foreground"}, {"key": "style", "label": "Style", "placeholder": "chipped white signwriter's capitals", "default": "chipped white signwriter's capitals"}]}, {"id": "txtedit-restyle", "title": "Restyle existing text", "reference_images": 1, "description": "Same words, new treatment.", "prompt": "Keep the wording in <image1> exactly as it is, but restyle the text as {{new_style}}. Keep the position and reading order the same. Leave the rest of the image untouched.", "fields": [{"key": "new_style", "label": "New style", "placeholder": "bold three-dimensional brushed gold lettering with a soft glow", "default": "bold three-dimensional brushed gold lettering with a soft glow"}]}]}, {"id": "portrait", "name": "Portrait & People", "blurb": "Identity-preserving edits. Always state what must stay the same.", "templates": [{"id": "por-expression", "title": "Change expression", "reference_images": 1, "description": "The identity clause matters more than the expression description.", "prompt": "Change the expression of the person in <image1> to {{expression}}. Keep their identity, facial structure, hair, clothing, pose, lighting and background completely unchanged. Natural skin texture, uncompressed raw photo.", "fields": [{"key": "expression", "label": "Expression", "placeholder": "a genuine open laugh with the eyes crinkling", "default": "a genuine open laugh with the eyes crinkling"}]}, {"id": "por-age", "title": "Change apparent age", "reference_images": 1, "description": "Name the physical markers you expect, not just a number.", "prompt": "Make the person in <image1> look {{age_change}}, with {{markers}}. Keep their identity recognisable, and keep the pose, clothing, framing and lighting unchanged. Natural skin texture, uncompressed raw photo.", "fields": [{"key": "age_change", "label": "Age change", "placeholder": "about thirty years older", "default": "about thirty years older"}, {"key": "markers", "label": "Physical markers", "placeholder": "realistic wrinkling, thinning greyed hair and softer jawline", "default": "realistic wrinkling, thinning greyed hair and softer jawline"}]}, {"id": "por-hair", "title": "Change hair", "reference_images": 1, "description": "Cut, length, colour and texture as four separate facts.", "prompt": "Change the hair of the person in <image1> to {{hair}}. Keep their face, expression, clothing, pose and the background unchanged. Natural hairline and realistic strand detail. Uncompressed raw photo.", "fields": [{"key": "hair", "label": "Hair", "placeholder": "a short blunt bob, dark auburn, slightly wavy", "default": "a short blunt bob, dark auburn, slightly wavy"}]}, {"id": "por-outfit", "title": "Change outfit", "reference_images": 1, "description": "For a garment from a photo you own, use the two-image try-on template instead.", "prompt": "Change what the person in <image1> is wearing to {{outfit}}. Keep their face, hair, body proportions, pose and the background exactly the same. The garment should drape and fold naturally. Uncompressed raw photo.", "fields": [{"key": "outfit", "label": "Outfit", "placeholder": "a well-cut navy three-piece suit with a white shirt, no tie", "default": "a well-cut navy three-piece suit with a white shirt, no tie"}]}, {"id": "por-pose", "title": "Change pose", "reference_images": 1, "description": "Larger pose changes work better when you also restate the framing.", "prompt": "Change the pose of the person in <image1> to {{pose}}, keeping the same {{framing}}. Their identity, hair, clothing, lighting and background stay unchanged. Uncompressed raw photo.", "fields": [{"key": "pose", "label": "New pose", "placeholder": "seated, leaning forward with forearms on the knees", "default": "seated, leaning forward with forearms on the knees"}, {"key": "framing", "label": "Framing", "placeholder": "three-quarter length framing", "default": "three-quarter length framing"}]}, {"id": "por-headshot", "title": "Convert to studio headshot", "reference_images": 1, "description": "Turns a casual snap into something usable professionally.", "prompt": "Turn <image1> into a professional studio headshot. {{background}} background, {{lighting}}, {{crop}}. Keep the person's identity, facial features and hair exactly as they are. Natural skin texture, no beauty smoothing. Uncompressed raw photo.", "fields": [{"key": "background", "label": "Background", "placeholder": "Seamless mid-grey", "default": "Seamless mid-grey"}, {"key": "lighting", "label": "Lighting", "placeholder": "soft key slightly above and to the left with a gentle fill", "default": "soft key slightly above and to the left with a gentle fill"}, {"key": "crop", "label": "Crop", "placeholder": "cropped just below the shoulders", "default": "cropped just below the shoulders"}]}]}, {"id": "style", "name": "Style & Medium", "blurb": "Restyling an existing image. The named medium does the heavy lifting.", "templates": [{"id": "sty-named", "title": "Restyle to a named medium", "reference_images": 1, "description": "Name a medium or technique rather than a studio or living artist - it is both safer and more controllable.", "prompt": "Restyle <image1> as {{medium}}, with {{characteristics}}. Keep the composition, subject placement and proportions recognisable.", "fields": [{"key": "medium", "label": "Medium", "placeholder": "a woodblock print", "default": "a woodblock print"}, {"key": "characteristics", "label": "Characteristics", "placeholder": "limited flat colours, visible grain, bold outlines and slight registration offset", "default": "limited flat colours, visible grain, bold outlines and slight registration offset"}]}, {"id": "sty-lineart", "title": "Convert to line art", "reference_images": 1, "description": "Say how heavy the line is and whether shading survives.", "prompt": "Convert <image1> to {{line_style}} line art on a plain white background. {{shading}}. Preserve the composition and all major shapes.", "fields": [{"key": "line_style", "label": "Line style", "placeholder": "clean single-weight black ink", "default": "clean single-weight black ink"}, {"key": "shading", "label": "Shading", "placeholder": "No greys - use cross-hatching for shadow areas only", "default": "No greys - use cross-hatching for shadow areas only"}]}, {"id": "sty-3d", "title": "Convert to a physical craft", "reference_images": 1, "description": "Claymation, felt, paper-craft and vinyl all read strongly.", "prompt": "Recreate the scene in <image1> as {{craft}}, with {{material_detail}}. Keep the same composition, poses and colour relationships. Photographed with {{lighting}}.", "fields": [{"key": "craft", "label": "Craft", "placeholder": "a stop-motion claymation set", "default": "a stop-motion claymation set"}, {"key": "material_detail", "label": "Material detail", "placeholder": "visible fingerprints and tool marks in the clay", "default": "visible fingerprints and tool marks in the clay"}, {"key": "lighting", "label": "Lighting", "placeholder": "a shallow depth of field and warm practical lights", "default": "a shallow depth of field and warm practical lights"}]}, {"id": "sty-grade", "title": "Colour grade only", "reference_images": 1, "description": "Grading without redrawing. Keep the instruction narrow.", "prompt": "Apply a {{grade}} colour grade to <image1>. {{grade_detail}}. Do not change any content, composition or detail - only colour, contrast and tone.", "fields": [{"key": "grade", "label": "Grade", "placeholder": "bleach-bypass", "default": "bleach-bypass"}, {"key": "grade_detail", "label": "Grade detail", "placeholder": "Desaturated, lifted blacks, cool shadows and retained highlight detail", "default": "Desaturated, lifted blacks, cool shadows and retained highlight detail"}]}]}, {"id": "local-edit", "name": "Local / Marked-Region Edit", "blurb": "2.1 reads circles, arrows and painted marks drawn onto the reference.", "templates": [{"id": "loc-marked", "title": "Edit inside a marked region", "reference_images": 1, "description": "Draw a circle or blob on the image first, then point the prompt at it.", "prompt": "In <image1>, edit only the area I have marked with {{marker}}: {{instruction}}. Leave every part of the image outside that mark completely untouched, and blend the edited region seamlessly at its edges. Uncompressed raw photo.", "fields": [{"key": "marker", "label": "Marker used", "placeholder": "a red circle", "default": "a red circle"}, {"key": "instruction", "label": "What to do there", "placeholder": "replace the cracked tile with an intact one matching its neighbours", "default": "replace the cracked tile with an intact one matching its neighbours"}]}, {"id": "loc-arrow", "title": "Point with an arrow", "reference_images": 1, "description": "An arrow is better than a circle when the target is small or partly hidden.", "prompt": "The arrow drawn on <image1> points at {{target}}. {{instruction}}. Remove the arrow itself from the output. Change nothing else. Uncompressed raw photo.", "fields": [{"key": "target", "label": "Target", "placeholder": "the light fitting above the counter", "default": "the light fitting above the counter"}, {"key": "instruction", "label": "Instruction", "placeholder": "Replace it with a simple black cone pendant lamp", "default": "Replace it with a simple black cone pendant lamp"}]}, {"id": "loc-preserve", "title": "Edit everything except", "reference_images": 1, "description": "The inverse instruction. Handy when the protected area is smaller than the edited one.", "prompt": "In <image1>, {{instruction}}. Leave {{protected}} completely untouched - identical pixels, no re-rendering. Uncompressed raw photo.", "fields": [{"key": "instruction", "label": "Instruction", "placeholder": "restyle the whole scene as an overcast winter morning", "default": "restyle the whole scene as an overcast winter morning"}, {"key": "protected", "label": "Protect", "placeholder": "the two people in the foreground and their clothing", "default": "the two people in the foreground and their clothing"}]}]}, {"id": "multi-reference", "name": "Multi-Image Composition", "blurb": "Up to 10 references. Name every one you rely on, and say what each contributes.", "templates": [{"id": "multi-tryon", "title": "Virtual try-on", "reference_images": 2, "description": "The canonical two-image task. <image1> is the person, <image2> the garment.", "prompt": "Keep the person, pose, face and background in <image1> unchanged, and dress them in {{garment}} from <image2>. The garment fits naturally to the body with realistic fabric texture, folds and shadow. Preserve the original facial features, hair and body shape exactly. Uncompressed raw photo.", "fields": [{"key": "garment", "label": "Garment", "placeholder": "the light blue denim shirt", "default": "the light blue denim shirt"}]}, {"id": "multi-outfit", "title": "Assemble a full outfit", "reference_images": 4, "description": "One reference per garment. Enumerate them explicitly.", "prompt": "Dress the person in <image1> in {{top}} from <image2>, {{bottom}} from <image3> and {{footwear}} from <image4>. Keep their face, hair, body proportions, pose and the background from <image1> unchanged. Each garment keeps its own colour, pattern and material. Natural fit and drape. Uncompressed raw photo.", "fields": [{"key": "top", "label": "Top (image2)", "placeholder": "the cream cable-knit jumper", "default": "the cream cable-knit jumper"}, {"key": "bottom", "label": "Bottom (image3)", "placeholder": "the dark olive wide-leg trousers", "default": "the dark olive wide-leg trousers"}, {"key": "footwear", "label": "Footwear (image4)", "placeholder": "the tan leather boots", "default": "the tan leather boots"}]}, {"id": "multi-subject-into-scene", "title": "Put a subject into a scene", "reference_images": 2, "description": "<image1> carries the subject, <image2> the environment.", "prompt": "Place the subject from <image1> into the scene from <image2>, positioned {{placement}}. Keep the subject's identity, clothing and proportions exactly. Relight the subject to match <image2>'s light direction and colour temperature, and add a correct contact shadow. Uncompressed raw photo.", "fields": [{"key": "placement", "label": "Placement", "placeholder": "standing on the path in the middle distance, facing the camera", "default": "standing on the path in the middle distance, facing the camera"}]}, {"id": "multi-two-characters", "title": "Combine two characters", "reference_images": 2, "description": "Both identities must be named as things to preserve, or one drifts.", "prompt": "Put the character from <image1> and the character from <image2> together in one image, {{arrangement}}. {{setting}}. Preserve both faces, hairstyles and outfits exactly as they appear in their own references. Consistent single lighting setup across both. Uncompressed raw photo.", "fields": [{"key": "arrangement", "label": "Arrangement", "placeholder": "seated side by side at a small table, turned slightly towards each other", "default": "seated side by side at a small table, turned slightly towards each other"}, {"key": "setting", "label": "Setting", "placeholder": "A quiet cafe interior in the late afternoon", "default": "A quiet cafe interior in the late afternoon"}]}, {"id": "multi-group", "title": "Group shot from separate portraits", "reference_images": 3, "description": "Add or remove reference tags to match how many people you have.", "prompt": "Create a single group photograph containing the person from <image1>, the person from <image2> and the person from <image3>, {{arrangement}}. {{setting}}. Each face must remain clearly recognisable and unchanged. One consistent lighting setup, matched scale and a shared ground plane. Uncompressed raw photo.", "fields": [{"key": "arrangement", "label": "Arrangement", "placeholder": "standing shoulder to shoulder in a loose row", "default": "standing shoulder to shoulder in a loose row"}, {"key": "setting", "label": "Setting", "placeholder": "Outside a brick building on an overcast day", "default": "Outside a brick building on an overcast day"}]}, {"id": "multi-style-transfer", "title": "Apply one image's style to another", "reference_images": 2, "description": "Split it cleanly: content from one, look from the other.", "prompt": "Redraw the content and composition of <image1> in the visual style of <image2>. Take {{style_aspects}} from <image2>, and keep the subject, layout and proportions of <image1> intact. Do not copy any objects from <image2>.", "fields": [{"key": "style_aspects", "label": "Style aspects to take", "placeholder": "the palette, brushwork and level of abstraction", "default": "the palette, brushwork and level of abstraction"}]}, {"id": "multi-product-lifestyle", "title": "Product into a lifestyle scene", "reference_images": 2, "description": "Keep the product's geometry locked; everything else can move.", "prompt": "Place the product from <image1> into the scene from <image2>, {{placement}}. Keep the product's exact shape, colour, label text and proportions - do not redesign it. Match the scene's lighting and add a realistic contact shadow and subtle reflections. Commercial photography quality.", "fields": [{"key": "placement", "label": "Placement", "placeholder": "standing on the worktop to the right of the bowl", "default": "standing on the worktop to the right of the bowl"}]}, {"id": "multi-object-swap", "title": "Swap in an object from a reference", "reference_images": 2, "description": "More reliable than describing the replacement in words.", "prompt": "In <image1>, replace {{original}} with {{replacement}} from <image2>. Keep the same position, scale, orientation and shadow as the original object. Match <image1>'s lighting. Everything else in <image1> unchanged. Uncompressed raw photo.", "fields": [{"key": "original", "label": "Original object", "placeholder": "the sofa", "default": "the sofa"}, {"key": "replacement", "label": "Replacement (image2)", "placeholder": "the green velvet sofa", "default": "the green velvet sofa"}]}, {"id": "multi-interior-staging", "title": "Stage an interior", "reference_images": 3, "description": "Room first, then one reference per piece of furniture.", "prompt": "Furnish the empty room in <image1> using {{item_a}} from <image2> and {{item_b}} from <image3>. Place them {{placement}}, at realistic scale, sitting correctly on the floor with accurate shadows and perspective. Keep the room's architecture, windows and daylight unchanged. Interior photography.", "fields": [{"key": "item_a", "label": "Item A (image2)", "placeholder": "the walnut dining table and chairs", "default": "the walnut dining table and chairs"}, {"key": "item_b", "label": "Item B (image3)", "placeholder": "the tall arched floor lamp", "default": "the tall arched floor lamp"}, {"key": "placement", "label": "Placement", "placeholder": "the table centred under the pendant, the lamp in the far left corner", "default": "the table centred under the pendant, the lamp in the far left corner"}]}, {"id": "multi-logo-mockup", "title": "Apply a logo to a mockup", "reference_images": 2, "description": "The wrapping instruction is what stops it looking pasted on.", "prompt": "Apply the logo from <image2> onto {{surface}} in <image1>, positioned {{placement}} at {{size}}. The logo must follow the surface's curvature, perspective, lighting and texture as if genuinely printed on it. Keep the logo's exact shapes, proportions and colours. Keep everything else in <image1> unchanged.", "fields": [{"key": "surface", "label": "Surface", "placeholder": "the front of the coffee cup", "default": "the front of the coffee cup"}, {"key": "placement", "label": "Placement", "placeholder": "centred, facing the camera", "default": "centred, facing the camera"}, {"key": "size", "label": "Size", "placeholder": "about a third of the cup's width", "default": "about a third of the cup's width"}]}, {"id": "multi-identity-scene", "title": "Same person, new scenario", "reference_images": 1, "description": "Identity preservation from a single reference. Repeat the preservation clause - it earns its length.", "prompt": "The person in <image1> is {{scenario}}. {{setting}}, {{lighting}}. Preserve their exact facial features, bone structure, skin tone and hair so they remain clearly the same person. Natural skin texture, uncompressed raw photo.", "fields": [{"key": "scenario", "label": "Scenario", "placeholder": "leaning on a workbench in a busy workshop", "default": "leaning on a workbench in a busy workshop"}, {"key": "setting", "label": "Setting", "placeholder": "Tools and sawdust in the background", "default": "Tools and sawdust in the background"}, {"key": "lighting", "label": "Lighting", "placeholder": "hard daylight through a high window", "default": "hard daylight through a high window"}]}, {"id": "multi-turnaround", "title": "Turnaround from one reference", "reference_images": 1, "description": "Consistency across views is the whole point - say it twice.", "prompt": "Create a {{views}} turnaround of the character in <image1>, arranged in a single row on a plain {{background}} background. The same character, same outfit, same proportions and same colours in every view. Even flat lighting, no cast shadows.", "fields": [{"key": "views", "label": "Views", "placeholder": "front, side and back", "default": "front, side and back"}, {"key": "background", "label": "Background", "placeholder": "light grey", "default": "light grey"}]}, {"id": "multi-scene-continuity", "title": "Reuse a set across shots", "reference_images": 2, "description": "Locks the environment while the action changes.", "prompt": "Keep the location, set dressing, camera height and lighting from <image1> exactly, and place the character from <image2> in it, {{action}}. The environment must be recognisably the same place. Uncompressed raw photo.", "fields": [{"key": "action", "label": "Action", "placeholder": "walking towards the camera in the middle distance", "default": "walking towards the camera in the middle distance"}]}]}, {"id": "layout", "name": "Panorama, Infographic & Storyboard", "blurb": "The wide-format and multi-panel tasks 2.1 added.", "templates": [{"id": "lay-panorama", "title": "Panorama", "reference_images": 0, "description": "Set a wide aspect ratio in SwarmUI as well - the prompt alone will not stretch the frame.", "prompt": "A seamless panoramic view of {{scene}}, {{time}}, {{detail}}. Continuous horizon with no repeated elements or visible seams, consistent lighting across the full width, extreme wide aspect ratio.", "fields": [{"key": "scene", "label": "Scene", "placeholder": "a terraced hillside of olive groves above a bay", "default": "a terraced hillside of olive groves above a bay"}, {"key": "time", "label": "Time", "placeholder": "mid-morning haze", "default": "mid-morning haze"}, {"key": "detail", "label": "Detail", "placeholder": "dry stone walls, scattered farm buildings, a single road switchbacking down", "default": "dry stone walls, scattered farm buildings, a single road switchbacking down"}]}, {"id": "lay-infographic", "title": "Infographic", "reference_images": 0, "description": "Spell out the sections and their labels. The model lays out what you enumerate.", "prompt": "A clean {{style}} infographic titled \"{{title}}\". It is divided into {{section_count}} labelled sections: {{sections}}. Each section has {{section_content}}. Palette of {{palette}}, generous whitespace, consistent iconography, all text accurate and legible.", "fields": [{"key": "style", "label": "Style", "placeholder": "flat vector", "default": "flat vector"}, {"key": "title", "label": "Title", "placeholder": "HOW A HEAT PUMP WORKS", "default": "HOW A HEAT PUMP WORKS"}, {"key": "section_count", "label": "Number of sections", "placeholder": "four", "default": "four"}, {"key": "sections", "label": "Section labels", "placeholder": "\"Evaporate\", \"Compress\", \"Condense\", \"Expand\"", "default": "\"Evaporate\", \"Compress\", \"Condense\", \"Expand\""}, {"key": "section_content", "label": "Per-section content", "placeholder": "a simple line icon, a short heading and two lines of body text", "default": "a simple line icon, a short heading and two lines of body text"}, {"key": "palette", "label": "Palette", "placeholder": "deep teal, warm grey and a single orange accent", "default": "deep teal, warm grey and a single orange accent"}]}, {"id": "lay-storyboard", "title": "Storyboard strip", "reference_images": 0, "description": "Describe each panel in order. Naming the shot size per panel helps a lot.", "prompt": "A {{panel_count}}-panel storyboard strip in {{style}}, panels arranged {{arrangement}} with thin borders and a shot number in each corner. Panel 1: {{panel1}}. Panel 2: {{panel2}}. Panel 3: {{panel3}}. Consistent character design and location across all panels.", "fields": [{"key": "panel_count", "label": "Panels", "placeholder": "three", "default": "three"}, {"key": "style", "label": "Style", "placeholder": "loose grey-marker sketch", "default": "loose grey-marker sketch"}, {"key": "arrangement", "label": "Arrangement", "placeholder": "left to right in one row", "default": "left to right in one row"}, {"key": "panel1", "label": "Panel 1", "placeholder": "wide shot, a lone cyclist at the end of an empty road", "default": "wide shot, a lone cyclist at the end of an empty road"}, {"key": "panel2", "label": "Panel 2", "placeholder": "medium shot, the cyclist stopping and looking back", "default": "medium shot, the cyclist stopping and looking back"}, {"key": "panel3", "label": "Panel 3", "placeholder": "close-up on their hand releasing the brake", "default": "close-up on their hand releasing the brake"}]}, {"id": "lay-comic", "title": "Comic page", "reference_images": 0, "description": "Dialogue in quotes gets rendered into the balloons.", "prompt": "A single comic book page with {{panel_count}} panels in {{layout}}, drawn in {{style}}. The story: {{story}}. Speech balloons contain: \"{{line1}}\" and \"{{line2}}\". Consistent character design throughout, clear reading order, legible hand-lettered text.", "fields": [{"key": "panel_count", "label": "Panels", "placeholder": "five", "default": "five"}, {"key": "layout", "label": "Layout", "placeholder": "an irregular grid", "default": "an irregular grid"}, {"key": "style", "label": "Style", "placeholder": "inked black and white with heavy spot blacks", "default": "inked black and white with heavy spot blacks"}, {"key": "story", "label": "Story", "placeholder": "a lighthouse keeper notices a light where there should not be one", "default": "a lighthouse keeper notices a light where there should not be one"}, {"key": "line1", "label": "Dialogue 1", "placeholder": "That's not the buoy.", "default": "That's not the buoy."}, {"key": "line2", "label": "Dialogue 2", "placeholder": "Then what is it?", "default": "Then what is it?"}]}, {"id": "lay-diagram", "title": "Labelled diagram", "reference_images": 0, "description": "Good for cutaways and exploded views. List the labels you want.", "prompt": "A labelled {{diagram_type}} of {{subject}}, {{style}}. Callout lines connect to labels reading: {{labels}}. Clean layout, consistent line weight, all label text correctly spelled and legible, plain {{background}} background.", "fields": [{"key": "diagram_type", "label": "Diagram type", "placeholder": "cutaway diagram", "default": "cutaway diagram"}, {"key": "subject", "label": "Subject", "placeholder": "a moka pot", "default": "a moka pot"}, {"key": "style", "label": "Style", "placeholder": "technical illustration in two colours", "default": "technical illustration in two colours"}, {"key": "labels", "label": "Labels", "placeholder": "\"Water chamber\", \"Filter basket\", \"Safety valve\", \"Collection chamber\"", "default": "\"Water chamber\", \"Filter basket\", \"Safety valve\", \"Collection chamber\""}, {"key": "background", "label": "Background", "placeholder": "off-white", "default": "off-white"}]}]}], "template_count": 69}</script>
+<script>
+(function () {
+  "use strict";
+  var DATA = JSON.parse(document.getElementById("tplData").textContent);
+  var main = document.getElementById("main");
+  var STORE = "qwen21-workbench-v1";
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(STORE) || "{}") || {}; } catch (e) { saved = {}; }
+
+  function persist() {
+    try { localStorage.setItem(STORE, JSON.stringify(saved)); } catch (e) { /* private mode, ignore */ }
+  }
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function highlight(prompt) {
+    return esc(prompt)
+      .replace(/\{\{(\w+)\}\}/g, '<span class="ph">$1</span>')
+      .replace(/&lt;image(\d+)&gt;/g, '<span class="ref">&lt;image$1&gt;</span>');
+  }
+  function compose(tpl, values) {
+    return tpl.prompt.replace(/\{\{(\w+)\}\}/g, function (_, key) {
+      var v = values[key];
+      return (v && v.trim()) ? v.trim() : "{{" + key + "}}";
+    });
+  }
+  function valuesFor(tpl) {
+    var v = {};
+    tpl.fields.forEach(function (f) {
+      var k = tpl.id + "." + f.key;
+      v[f.key] = Object.prototype.hasOwnProperty.call(saved, k) ? saved[k] : f.default;
+    });
+    return v;
+  }
+
+  // ---- tips
+  var tipsEl = document.getElementById("tips");
+  DATA.tips.forEach(function (t) {
+    var li = document.createElement("li");
+    li.textContent = t;
+    tipsEl.appendChild(li);
+  });
+
+  // ---- render sections
+  var cardIndex = [];
+  DATA.categories.forEach(function (cat) {
+    var sec = document.createElement("section");
+    sec.className = "sec";
+    sec.id = "cat-" + cat.id;
+
+    var head = document.createElement("div");
+    head.className = "sec-head";
+    var h2 = document.createElement("h2");
+    h2.textContent = cat.name;
+    var blurb = document.createElement("p");
+    blurb.textContent = cat.blurb;
+    head.appendChild(h2);
+    head.appendChild(blurb);
+    sec.appendChild(head);
+
+    var cards = document.createElement("div");
+    cards.className = "cards";
+
+    cat.templates.forEach(function (tpl) {
+      var values = valuesFor(tpl);
+      var card = document.createElement("article");
+      card.className = "card";
+
+      var ch = document.createElement("div");
+      ch.className = "card-head";
+      var h3 = document.createElement("h3");
+      h3.textContent = tpl.title;
+      var badge = document.createElement("em");
+      badge.className = "refbadge" + (tpl.reference_images === 0 ? " zero" : "");
+      badge.style.fontStyle = "normal";
+      badge.textContent = tpl.reference_images === 0
+        ? "no reference"
+        : tpl.reference_images + " reference image" + (tpl.reference_images > 1 ? "s" : "");
+      var desc = document.createElement("p");
+      desc.textContent = tpl.description;
+      ch.appendChild(h3);
+      ch.appendChild(badge);
+      ch.appendChild(desc);
+      card.appendChild(ch);
+
+      var tplLine = document.createElement("div");
+      tplLine.className = "tpl";
+      tplLine.innerHTML = highlight(tpl.prompt);
+      card.appendChild(tplLine);
+
+      var out = document.createElement("pre");
+
+      var fields = document.createElement("div");
+      fields.className = "fields";
+      tpl.fields.forEach(function (f) {
+        var wrap = document.createElement("div");
+        wrap.className = "field";
+        var id = "f-" + tpl.id + "-" + f.key;
+        var label = document.createElement("label");
+        label.setAttribute("for", id);
+        label.textContent = f.label;
+        var input = document.createElement("input");
+        input.type = "text";
+        input.id = id;
+        input.value = values[f.key];
+        input.placeholder = f.placeholder;
+        input.addEventListener("input", function () {
+          values[f.key] = input.value;
+          saved[tpl.id + "." + f.key] = input.value;
+          persist();
+          out.textContent = compose(tpl, values);
+        });
+        wrap.appendChild(label);
+        wrap.appendChild(input);
+        fields.appendChild(wrap);
+      });
+      card.appendChild(fields);
+
+      var outWrap = document.createElement("div");
+      outWrap.className = "out";
+      var outLabel = document.createElement("div");
+      outLabel.className = "out-label";
+      var outSpan = document.createElement("span");
+      outSpan.textContent = "Finished prompt";
+      var copy = document.createElement("button");
+      copy.type = "button";
+      copy.className = "btn";
+      copy.textContent = "Copy";
+      copy.addEventListener("click", function () {
+        var text = out.textContent;
+        var done = function () {
+          copy.textContent = "Copied";
+          copy.classList.add("done");
+          setTimeout(function () { copy.textContent = "Copy"; copy.classList.remove("done"); }, 1400);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, function () { fallback(text, done); });
+        } else {
+          fallback(text, done);
+        }
+      });
+      outLabel.appendChild(outSpan);
+      outLabel.appendChild(copy);
+      out.textContent = compose(tpl, values);
+      outWrap.appendChild(outLabel);
+      outWrap.appendChild(out);
+      card.appendChild(outWrap);
+
+      cards.appendChild(card);
+      cardIndex.push({
+        el: card,
+        refs: tpl.reference_images,
+        hay: (tpl.title + " " + tpl.description + " " + tpl.prompt + " " + cat.name).toLowerCase()
+      });
+    });
+
+    sec.appendChild(cards);
+    main.appendChild(sec);
+  });
+
+  function fallback(text, done) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) { /* nothing more to try */ }
+    document.body.removeChild(ta);
+  }
+
+  // ---- category rail
+  var catlist = document.getElementById("catlist");
+  DATA.categories.forEach(function (cat) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "catlink";
+    var name = document.createElement("i");
+    name.style.fontStyle = "normal";
+    name.textContent = cat.name;
+    var count = document.createElement("span");
+    count.textContent = cat.templates.length;
+    b.appendChild(name);
+    b.appendChild(count);
+    b.addEventListener("click", function () {
+      document.getElementById("cat-" + cat.id).scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    catlist.appendChild(b);
+  });
+
+  var links = Array.prototype.slice.call(catlist.children);
+  var sections = DATA.categories.map(function (c) { return document.getElementById("cat-" + c.id); });
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) { return; }
+        var i = sections.indexOf(en.target);
+        links.forEach(function (l, j) { l.setAttribute("aria-current", j === i ? "true" : "false"); });
+      });
+    }, { rootMargin: "-80px 0px -70% 0px" });
+    sections.forEach(function (s) { io.observe(s); });
+  }
+  links[0].setAttribute("aria-current", "true");
+
+  // ---- filters
+  var refFilter = null;
+  var query = "";
+  var chipWrap = document.getElementById("refChips");
+  [["any", null], ["0", 0], ["1", 1], ["2", 2], ["3+", 3]].forEach(function (pair) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.textContent = pair[0];
+    b.setAttribute("aria-pressed", pair[1] === null ? "true" : "false");
+    b.addEventListener("click", function () {
+      refFilter = pair[1];
+      Array.prototype.forEach.call(chipWrap.children, function (c) {
+        c.setAttribute("aria-pressed", c === b ? "true" : "false");
+      });
+      apply();
+    });
+    chipWrap.appendChild(b);
+  });
+
+  document.getElementById("search").addEventListener("input", function (e) {
+    query = e.target.value.trim().toLowerCase();
+    apply();
+  });
+
+  function apply() {
+    cardIndex.forEach(function (c) {
+      var okQuery = !query || c.hay.indexOf(query) !== -1;
+      var okRef = refFilter === null
+        || (refFilter === 3 ? c.refs >= 3 : c.refs === refFilter);
+      c.el.hidden = !(okQuery && okRef);
+    });
+    sections.forEach(function (sec) {
+      var any = Array.prototype.some.call(sec.querySelectorAll(".card"), function (el) { return !el.hidden; });
+      sec.hidden = !any;
+    });
+    var none = sections.every(function (s) { return s.hidden; });
+    var msg = document.getElementById("emptyMsg");
+    if (none && !msg) {
+      msg = document.createElement("p");
+      msg.id = "emptyMsg";
+      msg.className = "empty";
+      msg.textContent = "Nothing matches that. Try a shorter word.";
+      main.appendChild(msg);
+    } else if (!none && msg) {
+      msg.remove();
+    }
+  }
+
+  // ---- theme
+  var toggle = document.getElementById("themeToggle");
+  toggle.addEventListener("click", function () {
+    var root = document.documentElement;
+    var isDark = root.getAttribute("data-theme") === "dark"
+      || (!root.hasAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    root.setAttribute("data-theme", isDark ? "light" : "dark");
+  });
+})();
+</script>
